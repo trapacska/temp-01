@@ -6,6 +6,7 @@
 - BITRISEIO_GIT_BRANCH_DEST
 - BITRISE_GIT_TAG
 - BITRISE_PULL_REQUEST
+- BITRISE_GIT_COMMIT
 
 ## Bitrise API's `BuildResponseItemModel`
 
@@ -51,7 +52,16 @@ Based on the model and available infos above.
 - The step should find out what trigger_event_type if the actual build: 
   - BITRISE_GIT_TAG set = tag
   - BITRISE_PULL_REQUEST set = pull request
-  - None of the above = push
+  - BITRISE_GIT_COMMIT + none of the above = push
+  - everything else - manual
 - The step should request builds with query parameters(at least): branch, trigger_event_type.
 - Find the previous build matching the current build parameters(if PR then PR ID for example, etc...) and check it's status.
-- If the previous build is failed then export an env, for example: `PREVIOUS_BUILD_FAILED=true`
+- If the previous build is failed then export an env witht he status, for example: `PREVIOUS_BUILD_STATUS=[success or failed or aborted]`
+
+Example usage:
+- run this step, exported env: PREVIOUS_BUILD_STATUS=failed
+- cache-pull step run_if: '{{enveq "PREVIOUS_BUILD_STATUS" "success"}}' (downloads cache if the previous build was successful only)
+- run other tasks...
+- slack run_if: {{enveq "PREVIOUS_BUILD_STATUS" "failed" | and (not .IsBuildFailed)}} (send message about builds turning to green)
+- slack run_if: {{enveq "PREVIOUS_BUILD_STATUS" "success" | and .IsBuildFailed}} (send message about builds turning to failed)
+
