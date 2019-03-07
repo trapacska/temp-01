@@ -48,7 +48,7 @@ We can start an authenticated (with Bitrise Personal Access Token) request with 
 
 Based on the model and available infos above.
 
-- Create a step which has one input for Bitrise personal access token and one output (PREVIOUS_BUILD_FAILED for example)
+- Create a step which has one input for Bitrise personal access token and one output (PREVIOUS_BUILD_STATUS for example)
 - The step should find out what trigger_event_type if the actual build: 
   - BITRISE_GIT_TAG set = tag
   - BITRISE_PULL_REQUEST set = pull request
@@ -56,7 +56,7 @@ Based on the model and available infos above.
   - everything else - manual
 - The step should request builds with query parameters(at least): branch, trigger_event_type.
 - Find the previous build matching the current build parameters(if PR then PR ID for example, etc...) and check it's status.
-- If the previous build is failed then export an env witht he status, for example: `PREVIOUS_BUILD_STATUS=[success or failed or aborted]`
+- If the previous build is failed then export an env with the status, for example: `PREVIOUS_BUILD_STATUS=[success or failed or aborted]`
 
 Example usage:
 - run this step, exported env: PREVIOUS_BUILD_STATUS=failed
