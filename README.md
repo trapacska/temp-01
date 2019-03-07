@@ -48,7 +48,7 @@ We can start an authenticated (with Bitrise Personal Access Token) request with 
 
 Based on the model and available infos above.
 
-- Create a step which has one input for Bitrise personal access token and one output (PREVIOUS_BUILD_STATUS for example)
+- Create a step which has one input for Bitrise personal access token(not sure, check build api token if it is able to get the required info) and two output (PREVIOUS_BUILD_STATUS for example and BUILD_STATUS_CHANGED)
 - The step should find out what trigger_event_type if the actual build: 
   - BITRISE_GIT_TAG set = tag
   - BITRISE_PULL_REQUEST set = pull request
@@ -56,12 +56,15 @@ Based on the model and available infos above.
   - everything else - manual
 - The step should request builds with query parameters(at least): branch, trigger_event_type.
 - Find the previous build matching the current build parameters(if PR then PR ID for example, etc...) and check it's status.
-- If the previous build is failed then export an env with the status, for example: `PREVIOUS_BUILD_STATUS=[success or failed or aborted]`
+- Export an env with the status, for example: `PREVIOUS_BUILD_STATUS=[success or failed or aborted]` and an env BUILD_STATUS_CHANGED if the build status has changed since the previous build.
+- The step will not parse the previous build info again and again if the PREVIOUS_BUILD_STATUS env is already exported
 
 Example usage:
-- run this step, exported env: PREVIOUS_BUILD_STATUS=failed
+- run this step, exported env: PREVIOUS_BUILD_STATUS=failed, BUILD_STATUS_CHANGED=true (at this point the current build is still successful)
 - cache-pull step run_if: '{{enveq "PREVIOUS_BUILD_STATUS" "success"}}' (downloads cache if the previous build was successful only)
 - run other tasks...
 - slack run_if: {{enveq "PREVIOUS_BUILD_STATUS" "failed" | and (not .IsBuildFailed)}} (send message about builds turning to green)
 - slack run_if: {{enveq "PREVIOUS_BUILD_STATUS" "success" | and .IsBuildFailed}} (send message about builds turning to failed)
+- run this step, exported env: PREVIOUS_BUILD_STATUS=failed, BUILD_STATUS_CHANGED=true (at this point the current build might be failed or successful, set true or false accordingly)
+- slack run_if: {{enveq "BUILD_STATUS_CHANGED" "true"}} (send message about build status has changed)
 
